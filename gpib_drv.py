@@ -10,6 +10,7 @@ https://github.com/astro313/gpib/blob/master/pygpib.py
 '''interact with the Prologix USB to GPIB Adapter
 '''
 
+import sys
 import serial
 import time
 import numpy as np
@@ -21,7 +22,7 @@ class Prologix(object):
     """
     GPIB communication over prologix USB adapter
     """
-    def __init__(self, serial_dev="COM6",buffer_latency=0.2):
+    def __init__(self, serial_dev='/dev/ttyUSB0',buffer_latency=0.2):
         """
         buffer_latency is the 'one size fits all'; whereas smaller buffer reads (e.g. :STAR) may allow shorter
         """

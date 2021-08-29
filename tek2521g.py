@@ -13,9 +13,8 @@ import threading
 import gpib_drv
 
 class tek2521g(object):
-    def __init__(self, addr=8, serial_dev="COM6", buffer_latency=0.2):
-
-        self.gpib = Prologix(serial_dev,buffer_latency)
+    def __init__(self, addr=8, serial_dev='/dev/ttyUSB0', buffer_latency=0.2):
+        self.gpib = gpib_drv.Prologix(serial_dev,buffer_latency)
         self.addr = addr
         self.gpib.set_addr(addr)
         self.reset()
