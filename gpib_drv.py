@@ -16,8 +16,6 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-units = {'kHz':1.0E3,'MHz':1.0E6,'GHz':1.0E9}
-
 class Prologix(object):
     """
     GPIB communication over prologix USB adapter

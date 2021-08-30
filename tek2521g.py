@@ -23,6 +23,7 @@ class tek2521g(object):
 
         try:
             self.name = self.gpib.cmd('*IDN?')  # get the ID
+            self.gpib.cmd("++read eoi")
             if (self.name != "TEKTRONIX,PS2521G, ,SCPI:94.0 FW:.15"):
                 self.fail("TEK 2521G Failure (" + self.name + ")")
             print(self.name + "\n")
@@ -30,6 +31,37 @@ class tek2521g(object):
             raise RuntimeError("Error Getting ID of Tek 2521G")
             self.ser.close()
             
+    def clear_status(self):
+        self.gpib.cmd("*CLS")
+    
+    def get_ese(self):
+        """
+        *ESE?
+
+        Returns
+        -------
+        Returns the bits in the Event Status Enable Register
+
+        """
+            
+        ese_status = self.gpib_cmd("*ESE?")
+        self.gpib.cmd("++read eoi")
+        return(ese_status)
+    
+    def set_ese(self, value=''):
+        """
+        Sets bits in the Event Status Enable Register
+        specified by value, an 8-bit integer
+        Returns
+        -------
+        None.
+
+        """
+        txt = "*ESE "
+        txt += str(value) 
+        txt += "\n"
+        self.gpib.cmd(txt)
+    
     def reset(self):
         self.gpib.cmd("*RST")
         self.gpib.cmd("*CLS")
@@ -46,6 +78,7 @@ class tek2521g(object):
         """
         
         sys_stat = self.gpib.cmd("*TST?")
+        self.gpib.cmd("++read eoi")
         return sys_stat
     
     def sel_output(self, output_no=1):
@@ -76,6 +109,7 @@ class tek2521g(object):
         
         """
         status = self.gpib.cmd("INST:SEL?")
+        self.gpib.cmd("++read eoi")  
         return(status)
         
     def en_output(self, output_state=0):
@@ -83,6 +117,22 @@ class tek2521g(object):
             self.gpib.cmd("OUTP:STAT ON")
         else:
             self.gpib.cmd("OUTP:STAT OFF")
+            
+    def set_tracking_mode(self, mode='NONE'):
+        """
+        
+        Parameters
+        ----------
+        mode : Sets tracking mode:
+            NONE -- independent mode (default)
+            PARallel is parallel-tracking mode
+            SERies is series-tracking mode
+        Returns
+        -------
+        None.
+
+        """
+        
         
     def meas_current(self):
         """
@@ -90,10 +140,20 @@ class tek2521g(object):
         """
         
         current_meas = self.gpib.cmd("MEAS:SCAL:CURR?")
+        self.gpib.cmd("++read eoi")  
         return current_meas
     
     def meas_voltage(self):
+        """
+        
+
+        Returns
+        -------
+        Returns actual output voltage or sense input voltage.
+
+        """
         self.voltage_meas = self.gpib.cmd("MEAS:SCAL:VOLT?")
+        self.gpib.cmd("++read eoi")  
         return self.voltage_meas
     
     def set_voltage(self, voltage):
@@ -101,15 +161,32 @@ class tek2521g(object):
         txt = "SOUR:VOLT "
         txt += str(voltage)
         self.gpib.cmd(txt)
+    
+    def set_current(self, current):
+        # txt = "SOUR:VOLT:LEVEL:IMM:AMP "
+        txt = "SOUR:CURR "
+        txt += str(current)
+        self.gpib.cmd(txt)
             
     def get_error(self):
+        """
+        get_error
+
+        Returns
+        -------
+        err -- any system errors
+           
+
+        """
         self.err=self.gpib.cmd("SYSTem:ERRor?\n")
+        self.gpib.cmd("++read eoi")      
         return self.err
     
     def set_volt_protect(self, vlevel=0, query = 1):
         if query == 1:
             txt ="SOUR:VOLT:PROT:LEV?"
             status=self.gpib.cmd(txt)
+            self.gpib.cmd("++read eoi")
             return(status)
         else:
             txt ="SOUR:VOLT:PROT:LEV "
@@ -121,6 +198,7 @@ class tek2521g(object):
         if query == 1:
             txt ="SOUR:CURR?"
             status=self.gpib.cmd(txt)
+            self.gpib.cmd("++read eoi")
             return(status)
         else:
             txt ="SOUR:CURR "
@@ -128,15 +206,66 @@ class tek2521g(object):
             self.gpib.cmd(txt)
             
     def clear_output_protection(self):
+        """
+        Clears output protection
+
+        Returns
+        -------
+        None.
+
+        """
         self.gpib.cmd("OUTP:PROT:CLE")
         
     def en_curr_protect(self, clevel, query =1):
+        """
+        Enables current protection
+
+        Parameters
+        ----------
+        clevel : TYPE
+            DESCRIPTION.
+        query : TYPE, optional
+            DESCRIPTION. The default is 1.
+
+        Returns
+        -------
+        None.
+
+        """
         txt = "CURR:PROT:STAT"
         if query == 1:
             txt+= "?"
+            self.gpib.cmd(txt)
+            self.gpib.cmd("++read eoi")
         else:
             txt+= " " + str(clevel)
+            self.gpib.cmd(txt)
+        
+        
+    def set_output(self, state):
+        """
+        
+
+        Parameters
+        ----------
+        state : 0 = OFF
+              : 1 = on
+           The default is '0'.
+
+        Returns
+        -------
+        None.
+
+        """
+        txt = "OUTP:STAT "
+        txt += str(state)
         self.gpib.cmd(txt)
+        
+    def get_output_state(self):
+        txt="OUTP:STAT?"
+        output_state=self.gpib.cmd(txt)
+        self.gpib.cmd("++read eoi")
+        return(output_state)
             
 #    def record_c_v(self):
     
